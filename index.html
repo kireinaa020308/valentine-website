@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valentine Spiderman Love</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Poppins', sans-serif;
+        }
+
+        body {
+            background: radial-gradient(circle at center, #1a0b1e, #050008);
+            min-height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #ffe0f0;
+            perspective: 1000px;
+        }
+
+        /* ===== TAMPILAN AWAL: ANIMASI JARING LOVE ===== */
+        #intro-screen {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 10;
+            transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .spider-web-wrapper {
+            width: 85vmin;
+            height: 85vmin;
+            max-width: 650px;
+            max-height: 650px;
+            position: relative;
+            /* Kursor baru aktif saat animasi selesai (via JS) */
+        }
+
+        /* Animasi SVG */
+        .web-line {
+            fill: transparent;
+            stroke: #ff0000;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 800; /* Panjang garis untuk animasi */
+            stroke-dashoffset: 800; /* Mulai dari kosong */
+            animation: drawLine 2s ease-in-out forwards;
+            filter: drop-shadow(0 0 5px #ff0000);
+        }
+
+        /* Delay animasi agar bergambar satu per satu */
+        .line-outline { animation-delay: 0s; stroke-width: 3.5; animation-duration: 2.5s; stroke-dasharray: 1000; stroke-dashoffset: 1000;}
+        .line-layer2 { animation-delay: 0.8s; }
+        .line-layer3 { animation-delay: 1.2s; }
+        .line-layer4 { animation-delay: 1.5s; }
+        .line-radial { animation-delay: 1.8s; animation-duration: 1.5s; }
+        
+        /* Laba-laba muncul paling akhir */
+        .spider-icon {
+            opacity: 0;
+            animation: fadeInSpider 0.8s ease forwards;
+            animation-delay: 2.5s;
+            filter: drop-shadow(0 0 5px #ff0000);
+        }
+
+        @keyframes drawLine {
+            100% { stroke-dashoffset: 0; }
+        }
+
+        @keyframes fadeInSpider {
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* Tombol/teks petunjuk klik (muncul setelah animasi selesai) */
+        .click-hint {
+            margin-top: 20px;
+            font-size: 1.5rem;
+            color: #ff99bb;
+            text-shadow: 0 0 10px #ff0066;
+            font-weight: 600;
+            letter-spacing: 2px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .click-hint.show {
+            opacity: 1;
+            animation: blink 1.5s infinite;
+            cursor: pointer;
+        }
+
+        /* Efek setelah Love diklik (berdenyut besar) */
+        .spider-web-wrapper.ready-click {
+            cursor: pointer;
+            animation: pulseWebReady 2s infinite alternate;
+        }
+
+        @keyframes pulseWebReady {
+            0% { transform: scale(1); filter: drop-shadow(0 0 10px #ff0000); }
+            100% { transform: scale(1.05); filter: drop-shadow(0 0 30px #ff0000) drop-shadow(0 0 50px #ff0066); }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; text-shadow: 0 0 20px #ff0066, 0 0 40px #ff0066; }
+        }
+
+        /* ===== TAMPILAN KEDUA: LONG TEXT ===== */
+        #main-screen {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.9) translateZ(-50px);
+            transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 5;
+            padding: 20px;
+        }
+
+        body.opened #intro-screen {
+            opacity: 0;
+            transform: scale(1.5) translateZ(100px);
+            pointer-events: none;
+        }
+
+        body.opened #main-screen {
+            opacity: 1;
+            pointer-events: auto;
+            transform: scale(1) translateZ(0);
+        }
+
+        /* Kotak Surat 3D */
+        .letter-box {
+            background: rgba(25, 5, 35, 0.85);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 0, 80, 0.6);
+            border-radius: 30px;
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 
+                0 20px 50px rgba(0,0,0,0.8),
+                0 0 40px rgba(255, 0, 100, 0.4),
+                inset 0 0 20px rgba(255, 0, 100, 0.2);
+            transform-style: preserve-3d;
+            transform: rotateX(5deg);
+            position: relative;
+        }
+
+        .letter-box::-webkit-scrollbar { width: 8px; }
+        .letter-box::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); border-radius: 10px; }
+        .letter-box::-webkit-scrollbar-thumb { background: #ff3366; border-radius: 10px; }
+
+        .letter-box h1 {
+            font-size: 2.5rem;
+            text-align: center;
+            background: linear-gradient(135deg, #ffb6c1, #ff3366, #ff1493);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 20px rgba(255, 51, 102, 0.5);
+            margin-bottom: 20px;
+        }
+
+        .long-text {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #ffd9e6;
+            text-align: justify;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+            margin-bottom: 30px;
+            padding: 0 10px;
+        }
+
+        .long-text p { margin-bottom: 15px; }
+
+        .cute-icons {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-top: 20px;
+            font-size: 2.5rem;
+        }
+
+        .cute-icons i {
+            color: #ff4d6d;
+            text-shadow: 0 0 15px #ff0066;
+            animation: floatIcon 2s infinite alternate ease-in-out;
+            transition: transform 0.3s;
+        }
+
+        .cute-icons i:hover { transform: scale(1.3) rotate(10deg); color: #fff; }
+        .cute-icons i:nth-child(2) { animation-delay: 0.3s; color: #ff85a2; }
+        .cute-icons i:nth-child(3) { animation-delay: 0.6s; color: #ff99bb; }
+        .cute-icons i:nth-child(4) { animation-delay: 0.9s; color: #ffb3c6; }
+
+        @keyframes floatIcon {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-10px); }
+        }
+
+        .music-control { text-align: center; margin-top: 25px; }
+
+        .music-btn {
+            background: rgba(255, 50, 100, 0.3);
+            border: 1px solid #ff99bb;
+            color: #ffe0f0;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 20px rgba(255, 51, 102, 0.5);
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .music-btn:hover {
+            background: rgba(255, 50, 100, 0.6);
+            box-shadow: 0 0 30px rgba(255, 51, 102, 0.8);
+            transform: scale(1.05);
+        }
+
+        .particle {
+            position: absolute;
+            background: #ff3366;
+            border-radius: 50%;
+            opacity: 0.3;
+            pointer-events: none;
+            box-shadow: 0 0 15px #ff0066;
+            animation: floatParticle 10s infinite linear;
+            z-index: 1;
+        }
+
+        @keyframes floatParticle {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0.2; }
+            50% { opacity: 0.6; }
+            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+        }
+
+        audio { display: none; }
+
+        @media (max-width: 600px) {
+            .letter-box { padding: 25px 20px; }
+            .letter-box h1 { font-size: 1.8rem; }
+            .long-text { font-size: 1rem; }
+            .click-hint { font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="particle" style="width: 10px; height: 10px; top: 10%; left: 5%; animation-duration: 12s;"></div>
+    <div class="particle" style="width: 15px; height: 15px; top: 70%; left: 85%; animation-duration: 16s; background: #ff66a3;"></div>
+    <div class="particle" style="width: 8px; height: 8px; top: 40%; left: 92%; animation-duration: 14s;"></div>
+    <div class="particle" style="width: 20px; height: 20px; top: 80%; left: 15%; animation-duration: 18s; background: #ff4d6d;"></div>
+    <div class="particle" style="width: 12px; height: 12px; top: 20%; left: 75%; animation-duration: 11s;"></div>
+
+    <!-- ===== LAYAR 1: ANIMASI JARING LOVE ===== -->
+    <div id="intro-screen">
+        <div class="spider-web-wrapper" id="clickable-love">
+            <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                <!-- 1. Garis Luar Love -->
+                <path class="web-line line-outline" d="M 100 185 
+                         C 40 140, 5 90, 30 45 
+                         C 50 15, 85 20, 100 50 
+                         C 115 20, 150 15, 170 45 
+                         C 195 90, 160 140, 100 185 Z" />
+
+                <!-- 2. Jaring Lapisan Dalam -->
+                <path class="web-line line-layer2" d="M 100 160 
+                         C 55 125, 25 85, 45 55 
+                         C 60 35, 85 40, 100 65 
+                         C 115 40, 140 35, 155 55 
+                         C 175 85, 145 125, 100 160 Z" />
+                
+                <path class="web-line line-layer3" d="M 100 135 
+                         C 70 110, 45 80, 60 65 
+                         C 70 55, 85 60, 100 80 
+                         C 115 60, 130 55, 140 65 
+                         C 155 80, 130 110, 100 135 Z" />
+
+                <path class="web-line line-layer4" d="M 100 110 
+                         C 80 95, 65 75, 75 70 
+                         C 80 65, 90 70, 100 85 
+                         C 110 70, 120 65, 125 70 
+                         C 135 75, 120 95, 100 110 Z" />
+
+                <!-- 3. Garis Radial (Tulang Jaring) -->
+                <line class="web-line line-radial" x1="100" y1="185" x2="100" y2="70" />
+                <line class="web-line line-radial" x1="100" y1="120" x2="40" y2="140" />
+                <line class="web-line line-radial" x1="100" y1="120" x2="160" y2="140" />
+                <line class="web-line line-radial" x1="100" y1="85" x2="30" y2="45" />
+                <line class="web-line line-radial" x1="100" y1="85" x2="170" y2="45" />
+                <line class="web-line line-radial" x1="100" y1="85" x2="100" y2="50" />
+
+                <!-- 4. Ikon Laba-laba -->
+                <g class="spider-icon" transform="translate(135, 80) scale(0.6)">
+                    <ellipse cx="0" cy="0" rx="5" ry="7" fill="#ff0000" />
+                    <path d="M -5 -3 L -15 -10 M -5 0 L -15 0 M -5 3 L -15 10 M 5 -3 L 15 -10 M 5 0 L 15 0 M 5 3 L 15 10" stroke="#ff0000" stroke-width="1.5" stroke-linecap="round" />
+                </g>
+            </svg>
+        </div>
+        <div class="click-hint" id="click-hint">Ketuk Jaring Cintanya 💖</div>
+    </div>
+
+    <!-- ===== LAYAR 2: LONG TEXT & ICON LUCU ===== -->
+    <div id="main-screen">
+        <div class="letter-box">
+            <h1>Happy Valentine ❤️</h1>
+            
+            <div class="long-text">
+                <p>Hai cintaku,</p>
+                <p>Seperti jaring laba-laba yang kuat menangkap mangsanya, begitulah hatimu telah menangkap hatiku. Tidak ada jalan untuk kabur, dan aku pun tak ingin pergi. Kamu adalah pusat dari segalanya.</p>
+                <p>Setiap detik yang kita lewati adalah petualangan yang luar biasa. Terima kasih sudah menjadi tempat pulangku, menjadi alasan aku tersenyum di pagi hari, dan menjadi orang yang selalu ada di sisiku saat suka maupun duka.</p>
+                <p>Aku mencintaimu lebih dari yang bisa diungkapkan oleh kata-kata. Tetap jadi milikku ya, selamanya. 💕</p>
+            </div>
+
+            <div class="cute-icons">
+                <i class="fas fa-heart"></i>
+                <i class="fas fa-grin-hearts"></i>
+                <i class="fas fa-kiss-wink-heart"></i>
+                <i class="fas fa-laugh-beam"></i>
+            </div>
+
+            <div class="music-control">
+                <button id="playMusicBtn" class="music-btn">
+                    <i class="fas fa-play"></i> Putar Lagu "About You"
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="bgMusic" loop>
+        <source src="music/about-you.mp3.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        const clickableLove = document.getElementById('clickable-love');
+        const clickHint = document.getElementById('click-hint');
+        const audio = document.getElementById('bgMusic');
+        const playBtn = document.getElementById('playMusicBtn');
+
+        // Timer: Setelah animasi gambar jaring selesai (sekitar 3 detik),
+        // munculkan teks petunjuk dan aktifkan fungsi klik.
+        setTimeout(() => {
+            clickHint.classList.add('show');
+            clickableLove.classList.add('ready-click');
+        }, 3000); // 3000ms = 3 detik (sesuai durasi total animasi SVG)
+
+        // Event ketika jaring love di-klik
+        clickableLove.addEventListener('click', () => {
+            // Pastikan hanya bisa diklik jika animasi sudah selesai
+            if (!clickableLove.classList.contains('ready-click')) return;
+
+            // Tambahkan class 'opened' ke body untuk memicu transisi ke layar 2
+            document.body.classList.add('opened');
+
+            // Mainkan musik otomatis setelah klik
+            audio.volume = 0.6;
+            audio.play().then(() => {
+                updateBtn('pause', 'Jeda Lagu');
+            }).catch(err => {
+                console.log("Autoplay diblokir atau file tidak ditemukan:", err);
+                updateBtn('play', 'Putar Lagu "About You"');
+            });
+        });
+
+        // Logika Tombol Musik
+        function updateBtn(icon, text) {
+            playBtn.innerHTML = `<i class="fas fa-${icon}"></i> ${text}`;
+        }
+
+        playBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); 
+            if (audio.paused) {
+                audio.play().then(() => {
+                    updateBtn('pause', 'Jeda Lagu');
+                }).catch(err => {
+                    alert('Gagal memutar lagu. Pastikan file music/about-you.mp3 sudah ada.');
+                });
+            } else {
+                audio.pause();
+                updateBtn('play', 'Putar Lagu "About You"');
+            }
+        });
+
+        audio.addEventListener('play', () => updateBtn('pause', 'Jeda Lagu'));
+        audio.addEventListener('pause', () => updateBtn('play', 'Putar Lagu "About You"'));
+    </script>
+</body>
+</html>
